@@ -1,0 +1,142 @@
+import pygame
+import random
+import sys
+
+# Initialize pygame
+pygame.init()
+
+# Window size
+WIDTH = 600
+HEIGHT = 400
+WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Snake Game by ChatGPT")
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+
+# Snake and food size
+SIZE = 20
+
+# Font
+font = pygame.font.SysFont("Arial", 25)
+
+def draw_text(text, color, x, y):
+    screen_text = font.render(text, True, color)
+    WIN.blit(screen_text, (x, y))
+
+
+def game_loop():
+    # Starting position
+    x = WIDTH // 2
+    y = HEIGHT // 2
+
+    # Movement
+    dx = 0
+    dy = 0
+
+    # Snake body
+    snake_body = []
+    snake_length = 1
+
+    # Food
+    food_x = random.randrange(0, WIDTH - SIZE, SIZE)
+    food_y = random.randrange(0, HEIGHT - SIZE, SIZE)
+
+    score = 0
+    clock = pygame.time.Clock()
+
+    while True:
+        # Event handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            # Controls
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT and dx == 0:
+                    dx = -SIZE
+                    dy = 0
+                elif event.key == pygame.K_RIGHT and dx == 0:
+                    dx = SIZE
+                    dy = 0
+                elif event.key == pygame.K_UP and dy == 0:
+                    dx = 0
+                    dy = -SIZE
+                elif event.key == pygame.K_DOWN and dy == 0:
+                    dx = 0
+                    dy = SIZE
+
+        # Update snake position
+        x += dx
+        y += dy
+
+        # Game over if hit wall
+        if x < 0 or x >= WIDTH or y < 0 or y >= HEIGHT:
+            return score
+
+        # Draw background
+        WIN.fill(BLACK)
+
+        # Draw food
+        pygame.draw.rect(WIN, RED, [food_x, food_y, SIZE, SIZE])
+
+        # Snake head
+        head = []
+        head.append(x)
+        head.append(y)
+        snake_body.append(head)
+
+        if len(snake_body) > snake_length:
+            del snake_body[0]
+
+        # Snake collision with itself
+        for part in snake_body[:-1]:
+            if part == head:
+                return score
+
+        # Draw snake
+        for part in snake_body:
+            pygame.draw.rect(WIN, GREEN, [part[0], part[1], SIZE, SIZE])
+
+        # Food eaten
+        if x == food_x and y == food_y:
+            score += 1
+            snake_length += 1
+            food_x = random.randrange(0, WIDTH - SIZE, SIZE)
+            food_y = random.randrange(0, HEIGHT - SIZE, SIZE)
+
+        # Score board
+        draw_text(f"Score: {score}", WHITE, 10, 10)
+
+        pygame.display.update()
+        clock.tick(10)
+
+
+# Game Over Screen
+def game_over_screen(score):
+    WIN.fill(BLACK)
+    draw_text("GAME OVER!", RED, WIDTH//2 - 80, HEIGHT//2 - 50)
+    draw_text(f"Final Score: {score}", WHITE, WIDTH//2 - 80, HEIGHT//2)
+    draw_text("Press SPACE to play again", GREEN, WIDTH//2 - 150, HEIGHT//2 + 40)
+    pygame.display.update()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    main()
+
+
+def main():
+    score = game_loop()
+    game_over_screen(score)
+
+
+main()
